@@ -11,11 +11,61 @@ from typing import List, Union
 from easydiffusion import app, model_manager, task_manager
 from easydiffusion.types import GenerateImageRequest, MergeRequest, TaskData
 from easydiffusion.utils import log
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from passlib.context import CryptContext
+from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Extra
+from starlette.responses import FileResponse, JSONResponse, StreamingResponse
+
+from easydiffusion import app, model_manager, task_manager
+from easydiffusion.types import GenerateImageRequest, MergeRequest, TaskData
+from easydiffusion.utils import log
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Extra
 from starlette.responses import FileResponse, JSONResponse, StreamingResponse
 from pycloudflared import try_cloudflare
+
+users_db = {
+    "user": {
+        "username": "user",
+        "password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"
+    }
+}
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def authenticate_user(fake_db, username: str, password: str):
+    user = fake_db.get(username)
+    if not user:
+        return False
+    if not verify_password(password, user["password"]):
+        return False
+    return user
+
+@app.post("/token")
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = authenticate_user(users_db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    # para simplificar, estamos devolvendo um token fixo
+    # em um aplicativo real, você deve gerar um token JWT ou similar
+    return {"access_token": "supersecrettoken", "token_type": "bearer"}
+
+@app.get("/users/me")
+def read_current_user(token: str = Depends(oauth2_scheme)):
+    return {"username": "user"}  # simplificado para o exemplo
 
 log.info(f"started in {app.SD_DIR}")
 log.info(f"started at {datetime.datetime.now():%x %X}")

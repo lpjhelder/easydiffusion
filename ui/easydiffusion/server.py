@@ -28,12 +28,23 @@ from pydantic import BaseModel, Extra
 from starlette.responses import FileResponse, JSONResponse, StreamingResponse
 from pycloudflared import try_cloudflare
 
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from passlib.context import CryptContext
+from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime, timedelta
+from jose import JWTError, jwt
+
 users_db = {
     "user": {
         "username": "user",
         "password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"
     }
 }
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -50,18 +61,21 @@ def authenticate_user(fake_db, username: str, password: str):
         return False
     return user
 
-@app.post("/token")
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(users_db, form_data.username, form_data.password)
+@app.post("/token", response_model=Token)
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    # para simplificar, estamos devolvendo um token fixo
-    # em um aplicativo real, você deve gerar um token JWT ou similar
-    return {"access_token": "supersecrettoken", "token_type": "bearer"}
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
 
 @app.get("/users/me")
 def read_current_user(token: str = Depends(oauth2_scheme)):

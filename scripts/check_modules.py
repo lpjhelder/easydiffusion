@@ -25,10 +25,11 @@ modules_to_check = {
     "fastapi": "0.85.1",
     "pycloudflared": "0.2.0",
     "passlib": "1.7.4",
-    "python-jose[cryptography]": "3.3.0"
+    "python-jose[cryptography]": "3.3.0",
     # "xformers": "0.0.16",
 }
-modules_to_log = ["torch", "torchvision", "sdkit", "stable-diffusion-sdkit", "passlib", "python-jose[cryptography]"] 
+
+modules_to_log = ["torch", "torchvision", "sdkit", "stable-diffusion-sdkit", "passlib", "python-jose[cryptography]"]
 
 
 

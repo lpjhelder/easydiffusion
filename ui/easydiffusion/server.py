@@ -11,37 +11,19 @@ from typing import List, Union
 from easydiffusion import app, model_manager, task_manager
 from easydiffusion.types import GenerateImageRequest, MergeRequest, TaskData
 from easydiffusion.utils import log
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Extra
 from starlette.responses import FileResponse, JSONResponse, StreamingResponse
 
-from easydiffusion import app, model_manager, task_manager
-from easydiffusion.types import GenerateImageRequest, MergeRequest, TaskData
-from easydiffusion.utils import log
-from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Extra
-from starlette.responses import FileResponse, JSONResponse, StreamingResponse
+from jose import JWTError, jwt
+from datetime import datetime, timedelta
 from pycloudflared import try_cloudflare
 
-from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from passlib.context import CryptContext
-from pydantic import BaseModel
-from typing import Optional
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
-
-from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from typing import Any, Dict
-from datetime import datetime, timedelta
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 SECRET_KEY = "YOUR_SECRET_KEY"
 ALGORITHM = "HS256"
@@ -60,8 +42,20 @@ fake_users_db = {
 class TokenData(BaseModel):
     username: Optional[str] = None
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class User(BaseModel):
+    username: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    disabled: Optional[bool] = None
+
+class UserInDB(User):
+    hashed_password: str
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -111,7 +105,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return user
 
-@server_api.post("/token", response_model=Token)
+@app.post("/token", response_model=Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(fake_users_db, form_data.username, form_data.password)
     if not user:
@@ -125,13 +119,6 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
         data={"sub": user["username"]}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
-
-users_db = {
-    "user": {
-        "username": "user",
-        "password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"
-    }
-}
 
 class TokenData(BaseModel):
     username: Optional[str] = None

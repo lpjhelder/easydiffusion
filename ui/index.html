@@ -1,148 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      text-align: center;
-      padding-top: 100px;
-    }
-
-    h1 {
-      color: #333;
-    }
-
-    .container {
-      max-width: 400px;
-      margin: 0 auto;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-    }
-
-    input[type="text"],
-    input[type="password"] {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-    }
-
-    .btn {
-      display: inline-block;
-      background-color: #333;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 3px;
-      text-decoration: none;
-    }
-
-    .btn-primary {
-      background-color: #337ab7;
-    }
-
-    .btn-primary:hover {
-      background-color: #286090;
-    }
-
-    .btn-secondary {
-      background-color: #777;
-    }
-
-    .btn-secondary:hover {
-      background-color: #555;
-    }
-  </style>
+    <title>Registro e Login</title>
+    <script src="/media/js/main.js"></script>
 </head>
 <body>
-  <div class="container">
+    <h1>Registro</h1>
+    <form id="registerForm">
+        <label for="username">Usuário:</label>
+        <input type="text" id="username" required>
+        <br>
+        <label for="password">Senha:</label>
+        <input type="password" id="password" required>
+        <br>
+        <button type="submit">Registrar</button>
+    </form>
+
     <h1>Login</h1>
     <form id="loginForm">
-      <div class="form-group">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-      </div>
-      <div class="form-group">
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-      </div>
-      <button type="submit" class="btn btn-primary">Sign In</button>
-      <p>Don't have an account? <a href="#" class="btn btn-secondary" id="signupLink">Create Account</a></p>
+        <label for="loginUsername">Usuário:</label>
+        <input type="text" id="loginUsername" required>
+        <br>
+        <label for="loginPassword">Senha:</label>
+        <input type="password" id="loginPassword" required>
+        <br>
+        <button type="submit">Login</button>
     </form>
-  </div>
-
-  <script>
-    document.getElementById("loginForm").addEventListener("submit", function(event) {
-      event.preventDefault();
-      var username = document.getElementById("username").value;
-      var password = document.getElementById("password").value;
-
-      if (verificarCredenciais(username, password)) {
-        localStorage.setItem('username', username);
-        window.location.href = '/home';
-      } else {
-        alert('Failed to login: Invalid username or password');
-      }
-    });
-
-// Dados de contas de exemplo armazenados em um objeto JSON
-var accountData = {
-  "admin": "password" // Exemplo de conta existente com nome de usuário "admin" e senha "password"
-};
-
-document.getElementById("registerForm").addEventListener("submit", function(event) {
-  event.preventDefault();
-  var username = document.getElementById("registerUsername").value;
-  var password = document.getElementById("registerPassword").value;
-
-  // Verifica se o nome de usuário já está em uso
-  if (accountData.hasOwnProperty(username)) {
-    alert("Username already exists. Please choose a different username.");
-    return;
-  }
-
-  // Registra a nova conta
-  accountData[username] = password;
-  localStorage.setItem("accountData", JSON.stringify(accountData));
-  alert("Account created successfully. Please log in with your new credentials.");
-});
-
-document.getElementById("loginForm").addEventListener("submit", function(event) {
-  event.preventDefault();
-  var username = document.getElementById("username").value;
-  var password = document.getElementById("password").value;
-
-  // Verifica as credenciais
-  if (verificarCredenciais(username, password)) {
-    localStorage.setItem("username", username);
-    window.location.href = "/home"; // Redireciona para a página inicial após o login bem-sucedido
-  } else {
-    alert("Failed to login: Invalid username or password");
-  }
-});
-
-function verificarCredenciais(username, password) {
-  // Obtém os dados das contas do armazenamento local
-  var accountData = localStorage.getItem("accountData");
-  if (accountData) {
-    accountData = JSON.parse(accountData);
-    // Verifica se as credenciais correspondem aos dados da conta
-    return accountData.hasOwnProperty(username) && accountData[username] === password;
-  }
-  return false;
-}
-  </script>
 </body>
 </html>

@@ -1,56 +1,75 @@
-from flask import Flask, render_template, request, jsonify
-import json
+const fs = require('fs');
+const express = require('express');
+const app = express();
+const port = 9000;
 
-app = Flask(__name__)
+// Middleware para processar dados JSON
+app.use(express.json());
 
-@app.route('/')
-def index():
-    return render_template('ui/index.html')
+// Caminho para a página inicial
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/ui/index.html');
+});
 
-@app.route('/register', methods=['POST'])
-def register():
-    username = request.form['username']
-    password = request.form['password']
+// Caminho para a página home
+app.get('/home', (req, res) => {
+  res.sendFile(__dirname + '/ui/home.html');
+});
 
-    # Verifica se o arquivo JSON existe
-    try:
-        with open('ui/accounts.json', 'r') as file:
-            accounts = json.load(file)
-    except FileNotFoundError:
-        accounts = []
+// Rota para criar uma nova conta
+app.post('/register', (req, res) => {
+  const { username, password } = req.body;
 
-    # Verifica se o usuário já existe
-    for account in accounts:
-        if account['username'] == username:
-            return jsonify({'message': 'Usuário já existe'})
+  // Verificar se o arquivo accounts.json existe
+  fs.access('accounts.json', fs.constants.F_OK, (err) => {
+    if (err) {
+      // O arquivo não existe, criar um novo array vazio
+      const accounts = [];
+      accounts.push({ username, password });
 
-    # Adiciona o novo usuário aos dados existentes
-    accounts.append({'username': username, 'password': password})
+      // Converter os dados em formato JSON
+      const jsonData = JSON.stringify(accounts);
 
-    # Salva os dados no arquivo JSON
-    with open('ui/accounts.json', 'w') as file:
-        json.dump(accounts, file)
+      // Gravar os dados no arquivo accounts.json
+      fs.writeFile('accounts.json', jsonData, (err) => {
+        if (err) {
+          console.error('Erro ao gravar os dados da conta:', err);
+          res.status(500).json({ error: 'Erro interno do servidor' });
+        } else {
+          console.log('Dados da conta foram gravados em accounts.json');
+          res.sendStatus(200);
+        }
+      });
+    } else {
+      // O arquivo já existe, ler os dados existentes
+      fs.readFile('accounts.json', 'utf8', (err, data) => {
+        if (err) {
+          console.error('Erro ao ler os dados da conta:', err);
+          res.status(500).json({ error: 'Erro interno do servidor' });
+        } else {
+          const accounts = JSON.parse(data);
+          accounts.push({ username, password });
 
-    return jsonify({'message': 'Registro bem-sucedido'})
+          // Converter os dados em formato JSON
+          const jsonData = JSON.stringify(accounts);
 
-@app.route('/login', methods=['POST'])
-def login():
-    username = request.form['username']
-    password = request.form['password']
+          // Gravar os dados no arquivo accounts.json
+          fs.writeFile('accounts.json', jsonData, (err) => {
+            if (err) {
+              console.error('Erro ao gravar os dados da conta:', err);
+              res.status(500).json({ error: 'Erro interno do servidor' });
+            } else {
+              console.log('Dados da conta foram gravados em accounts.json');
+              res.sendStatus(200);
+            }
+          });
+        }
+      });
+    }
+  });
+});
 
-    # Verifica se o arquivo JSON existe
-    try:
-        with open('ui/accounts.json', 'r') as file:
-            accounts = json.load(file)
-    except FileNotFoundError:
-        return jsonify({'message': 'Nenhum usuário registrado'})
-
-    # Verifica se as credenciais são válidas
-    for account in accounts:
-        if account['username'] == username and account['password'] == password:
-            return jsonify({'message': 'Login bem-sucedido'})
-
-    return jsonify({'message': 'Usuário ou senha inválidos'})
-
-if __name__ == '__main__':
-    app.run()
+// Iniciar o servidor
+app.listen(port, () => {
+  console.log(`Servidor em execução em http://localhost:${port}`);
+});

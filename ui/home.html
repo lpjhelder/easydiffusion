@@ -558,5 +558,30 @@ async function init() {
 }
 
 init()
+<!-- Resto do seu código HTML -->
+
+<script>
+  document.getElementById("loginForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+    var username = document.getElementById("username").value;
+    var password = document.getElementById("password").value;
+
+    // Implemente sua lógica de autenticação aqui
+    // Verifique se o nome de usuário e a senha são válidos
+    if (verificarCredenciais(username, password)) {
+      localStorage.setItem('username', username);
+      window.location.href = '/home'; // Redirecionar para a página inicial após o login bem-sucedido
+    } else {
+      alert('Falha no login: Nome de usuário ou senha inválidos');
+    }
+  });
+
+  function verificarCredenciais(username, password) {
+    // Implemente sua lógica de verificação de credenciais aqui
+    // Por enquanto, vamos considerar que o nome de usuário é 'admin' e a senha é 'password'
+    return username === 'admin' && password === 'password';
+  }
 </script>
+</body>
 </html>
+

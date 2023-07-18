@@ -97,33 +97,52 @@
       }
     });
 
-    document.getElementById("signupLink").addEventListener("click", function(event) {
-      event.preventDefault();
-      var username = prompt("Enter a username:");
-      var password = prompt("Enter a password:");
+// Dados de contas de exemplo armazenados em um objeto JSON
+var accountData = {
+  "admin": "password" // Exemplo de conta existente com nome de usuário "admin" e senha "password"
+};
 
-      if (criarNovaConta(username, password)) {
-        alert('Account created successfully!');
-        localStorage.setItem('username', username);
-        window.location.href = '/home';
-      } else {
-        alert('Failed to create account');
-      }
-    });
+document.getElementById("registerForm").addEventListener("submit", function(event) {
+  event.preventDefault();
+  var username = document.getElementById("registerUsername").value;
+  var password = document.getElementById("registerPassword").value;
 
-    function verificarCredenciais(username, password) {
-      // Implemente sua lógica de verificação de credenciais aqui
-      // Você pode verificar os dados em um arquivo JSON, banco de dados, etc.
-      // Por enquanto, vamos considerar que o nome de usuário e senha são 'admin' e 'password'
-      return username === 'admin' && password === 'password';
-    }
+  // Verifica se o nome de usuário já está em uso
+  if (accountData.hasOwnProperty(username)) {
+    alert("Username already exists. Please choose a different username.");
+    return;
+  }
 
-    function criarNovaConta(username, password) {
-      // Implemente sua lógica para criar uma nova conta aqui
-      // Você pode armazenar os dados em um arquivo JSON, banco de dados, etc.
-      // Por enquanto, vamos apenas retornar true para fins de exemplo
-      return true;
-    }
+  // Registra a nova conta
+  accountData[username] = password;
+  localStorage.setItem("accountData", JSON.stringify(accountData));
+  alert("Account created successfully. Please log in with your new credentials.");
+});
+
+document.getElementById("loginForm").addEventListener("submit", function(event) {
+  event.preventDefault();
+  var username = document.getElementById("username").value;
+  var password = document.getElementById("password").value;
+
+  // Verifica as credenciais
+  if (verificarCredenciais(username, password)) {
+    localStorage.setItem("username", username);
+    window.location.href = "/home"; // Redireciona para a página inicial após o login bem-sucedido
+  } else {
+    alert("Failed to login: Invalid username or password");
+  }
+});
+
+function verificarCredenciais(username, password) {
+  // Obtém os dados das contas do armazenamento local
+  var accountData = localStorage.getItem("accountData");
+  if (accountData) {
+    accountData = JSON.parse(accountData);
+    // Verifica se as credenciais correspondem aos dados da conta
+    return accountData.hasOwnProperty(username) && accountData[username] === password;
+  }
+  return false;
+}
   </script>
 </body>
 </html>

@@ -61,8 +61,8 @@ def authenticate_user(fake_db, username: str, password: str):
         return False
     return user
 
-@app.post("/token", response_model=Token)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+@server_api.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(fake_users_db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(

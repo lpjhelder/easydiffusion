@@ -99,11 +99,30 @@
 
     document.getElementById("signupLink").addEventListener("click", function(event) {
       event.preventDefault();
-      alert('Create Account link clicked!');
+      var username = prompt("Enter a username:");
+      var password = prompt("Enter a password:");
+
+      if (criarNovaConta(username, password)) {
+        alert('Account created successfully!');
+        localStorage.setItem('username', username);
+        window.location.href = '/home';
+      } else {
+        alert('Failed to create account');
+      }
     });
 
     function verificarCredenciais(username, password) {
+      // Implemente sua lógica de verificação de credenciais aqui
+      // Você pode verificar os dados em um arquivo JSON, banco de dados, etc.
+      // Por enquanto, vamos considerar que o nome de usuário e senha são 'admin' e 'password'
       return username === 'admin' && password === 'password';
+    }
+
+    function criarNovaConta(username, password) {
+      // Implemente sua lógica para criar uma nova conta aqui
+      // Você pode armazenar os dados em um arquivo JSON, banco de dados, etc.
+      // Por enquanto, vamos apenas retornar true para fins de exemplo
+      return true;
     }
   </script>
 </body>
